@@ -21,9 +21,41 @@ test('parses an equals-style theme option after the url', () => {
   })
 })
 
+test('parses output directory, playlist, concurrency, and items options', () => {
+  assert.deepEqual(parseArgs(['-o', '/path/to/downloads', 'https://example.com/video']), {
+    help: false,
+    version: false,
+    outputDir: '/path/to/downloads',
+    initialUrl: 'https://example.com/video',
+  })
+  assert.deepEqual(parseArgs(['--output=/path/to/downloads', '--playlist', '-c', '4', '--items=1-5']), {
+    help: false,
+    version: false,
+    outputDir: '/path/to/downloads',
+    playlistMode: 'playlist',
+    concurrency: 4,
+    playlistItems: '1-5',
+  })
+  assert.deepEqual(parseArgs(['--dir', '~/Music', '--no-playlist', '--concurrency=2', '--playlist-items', '1,3,5']), {
+    help: false,
+    version: false,
+    outputDir: '~/Music',
+    playlistMode: 'video',
+    concurrency: 2,
+    playlistItems: '1,3,5',
+  })
+})
+
 test('rejects missing, invalid, and unknown options', () => {
   assert.match(parseArgs(['--theme']).error ?? '', /needs a value/)
   assert.match(parseArgs(['--theme', 'sepia']).error ?? '', /unknown theme/)
+  assert.match(parseArgs(['-o']).error ?? '', /needs a directory path/)
+  assert.match(parseArgs(['--output=']).error ?? '', /needs a directory path/)
+  assert.match(parseArgs(['-c']).error ?? '', /needs a positive number/)
+  assert.match(parseArgs(['-c', '0']).error ?? '', /positive integer/)
+  assert.match(parseArgs(['--concurrency=foo']).error ?? '', /positive integer/)
+  assert.match(parseArgs(['--items']).error ?? '', /needs a range specification/)
+  assert.match(parseArgs(['--items=']).error ?? '', /needs a range specification/)
   assert.match(parseArgs(['--wat']).error ?? '', /unknown option/)
   assert.match(parseArgs(['one', 'two']).error ?? '', /single url/)
 })

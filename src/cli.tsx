@@ -23,11 +23,16 @@ const HELP = `
     $ yoinks                 (prompts for a url)
 
   Options
-    --theme <mode>  use auto, light, or dark for this run
-    -h, --help      show this help
-    -v, --version   show version
+    -o, --output <dir>       save to this directory (default: ~/Downloads)
+    -c, --concurrency <num>  parallel video downloads for playlists (default: 3)
+    --items <range>          select playlist items/episodes (e.g. 1-5, 8, 10-12)
+    --playlist               download full playlist if link has one
+    --no-playlist            download single video even if link has a playlist
+    --theme <mode>           use auto, light, or dark for this run
+    -h, --help               show this help
+    -v, --version            show version
 
-  Downloads are saved to ~/Downloads.
+  Downloads are saved to ~/Downloads by default.
   Powered by yt-dlp — YouTube, X, Instagram, Threads, TikTok & 1800+ sites.
 `
 
@@ -85,6 +90,10 @@ const {waitUntilExit} = render(
     initialUrl={initialUrl}
     clipboardUrl={clipboardUrl}
     initialThemeMode={initialThemeMode}
+    outputDir={args.outputDir}
+    playlistMode={args.playlistMode}
+    concurrency={args.concurrency}
+    playlistItems={args.playlistItems}
     onOutcome={result => (outcome = result)}
   />,
   // keep a copy of every frame so clicks can be hit-tested against it
@@ -94,6 +103,8 @@ const {waitUntilExit} = render(
 await waitUntilExit()
 
 if (isTTY) leaveAltScreen()
-if (outcome.filepath) {
+if (outcome.folderpath) {
+  console.log(`✓ yoinked ${outcome.count ? `${outcome.count} videos ` : ''}→ ${outcome.folderpath}`)
+} else if (outcome.filepath) {
   console.log(`✓ yoinked → ${outcome.filepath}`)
 }
